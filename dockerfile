@@ -3,21 +3,18 @@
 FROM python:3.11.9-slim-bullseye
 
 # Install dependencies
-ARG SETUP_COMMAND 
 
 ARG PORT
-ARG APPLICATION
-ARG MAIN_FILE
 
 WORKDIR /app
 RUN pip3 install gunicorn
 COPY requirements.txt requirements.txt
-RUN ${SETUP_COMMAND}
+RUN pip install -r requirements.txt
 
 COPY . .
 
 # Setup entrypoint
-RUN echo "gunicorn --bind 0.0.0.0:${PORT} ${MAIN_FILE}:${APPLICATION}" > /app/entrypoint.sh
+RUN echo "gunicorn --bind 0.0.0.0:${PORT} main:app" > /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Run app
