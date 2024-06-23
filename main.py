@@ -71,8 +71,13 @@ def startChat():
     print("starting Chat")
     uid = request.json['uid']
     resume = request.json['resume']
-    chatTemp = [{'role': 'user', 'parts': ['The following is a resume of mine and I would like to chat with you about it. \ncontent:\n']},
-                {'role': 'model', 'parts': ['Sure, I\'d be happy to chat with you about it. What would you like to talk about?']}]
+    chatTemp = [{
+        'role': 'user',
+        'parts':
+        [
+            'The following is a resume of mine and I would like to chat with you about it. (Note: if user has not uploaded the resume and asks about it, you must tell the user that they have not uploaded a resume so you can\'t answer that.) \ncontent:\n'
+        ]},
+        {'role': 'model', 'parts': ['Sure, I\'d be happy to chat with you about it. What would you like to talk about?']}]
     chatTemp[0]['parts'][0] += resume
     userChatHistory[uid] = model.start_chat(history=chatTemp)
     return getChatHistory(userChatHistory[uid])
