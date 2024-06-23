@@ -10,13 +10,17 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 userChatHistory = {}
 
 startChatTemplate = [
-   {'role':'user', 'parts': ['The following is a resume of mine and I would like to chat with you about it. \ncontent:\n']},
-   {'role':'model', 'parts': ['Sure, I\'d be happy to chat with you about it. What would you like to talk about?']}
+    {'role': 'user', 'parts': [
+        'The following is a resume of mine and I would like to chat with you about it. \ncontent:\n']},
+    {'role': 'model', 'parts': [
+        'Sure, I\'d be happy to chat with you about it. What would you like to talk about?']}
 ]
+
 
 @app.route('/')
 def index():
     return jsonify({"message": "Hello World!"})
+
 
 @app.route("/api/uploadPDF", methods=['POST'])
 def uploadPDF():
@@ -26,20 +30,19 @@ def uploadPDF():
 
     if files:
         file = files['file']
-        file.save(f"uploads/{file.filename}")   
-
+        file.save(f"uploads/{file.filename}")
 
         # read the pdf file
         pdf = PdfReader(f"uploads/{file.filename}")
         page_count = len(pdf.pages)
-        
-        content= ""
+
+        content = ""
         for i in range(page_count):
             page = pdf.pages[i]
             content += page.extract_text()
-        
+
         print(content)
-        
+
         os.remove(f"uploads/{file.filename}")
 
         return jsonify({"content": content})
@@ -47,11 +50,13 @@ def uploadPDF():
     else:
         return jsonify({"message": "nofile"})
 
+
 @app.route("/api/summarize", methods=['POST'])
 def summarize():
     content = request.json['content']
-    
+
     return jsonify({"summary": summarize_resume(content)})
+
 
 @app.route("/api/chat", methods=['POST'])
 def chat():
@@ -60,15 +65,18 @@ def chat():
     response = userChatHistory[uid].send_message(message)
     return getChatHistory(userChatHistory[uid])
 
+
 @app.route("/api/startChat", methods=['POST'])
 def startChat():
     print("starting Chat")
     uid = request.json['uid']
     resume = request.json['resume']
-    chatTemp = startChatTemplate.copy()
+    chatTemp = [{'role': 'user', 'parts': ['The following is a resume of mine and I would like to chat with you about it. \ncontent:\n']},
+                {'role': 'model', 'parts': ['Sure, I\'d be happy to chat with you about it. What would you like to talk about?']}]
     chatTemp[0]['parts'][0] += resume
     userChatHistory[uid] = model.start_chat(history=chatTemp)
     return getChatHistory(userChatHistory[uid])
+
 
 @app.route("/api/getChatHistory", methods=['POST'])
 def sendChatHistory():
@@ -78,11 +86,13 @@ def sendChatHistory():
     else:
         return []
 
+
 @app.route("/api/clearChat", methods=['POST'])
 def clearChatHistory():
     uid = request.json['uid']
     userChatHistory[uid] = model.start_chat()
     return jsonify({"message": "Chat history cleared"})
+
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0")
